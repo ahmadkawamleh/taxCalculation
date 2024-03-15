@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 20px;
+        }
+
+        #container {
+            max-width: 80%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        input[type="checkbox"],
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+
+        label,
+        input,
+        button {
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #wifeSalaryInfo {
+            display: none;
+        }
+
+        @media only screen and (max-width: 600px) {
+            #container {
+                max-width: 100%;
+            }
+        }
+    </style>
+    <script>
+        const numberOfRoundDigits = 3;
+
+        function calculateDeductions() {
+            let salary = parseFloat(document.getElementById("salary").value) || 0;
+            let isMarried = document.getElementById("married").checked;
+            let wifeSalary = 0;
+
+            let wifeSalaryInfo = document.getElementById("wifeSalaryInfo");
+
+            if (isMarried) {
+                wifeSalaryInfo.style.display = "block";
+                wifeSalary = parseFloat(document.getElementById("wifeSalary").value) || 0;
+            } else {
+                wifeSalaryInfo.style.display = "none";
+            }
+
+            let sscAllowedSalary = Math.min(3538, salary);
+
+            let sscAmount = parseFloat((sscAllowedSalary * 0.075).toFixed(numberOfRoundDigits));
+            document.getElementById("socialSecurityDeduction").innerText = sscAmount;
+
+            let taxAmount = calculateTax(salary, isMarried, wifeSalary);
+            document.getElementById("TaxDeduction").innerText = taxAmount;
+
+            let netAmount = (salary - (sscAmount + taxAmount)).toFixed(numberOfRoundDigits);
+            document.getElementById("netAmount").innerText = netAmount;
+        }
+
+        function calculateTax(salary, isMarried, wifeSalary) {
+            let yearlySalary = salary;
+            let leastYearlySalary = 9000;
+
+            if (isMarried) {
+                yearlySalary += wifeSalary;
+                leastYearlySalary = 18000;
+            }
+
+
+            yearlySalary *= 12;
+
+            if (yearlySalary <= leastYearlySalary) {
+                return 0;
+            }
+
+            yearlySalary -= leastYearlySalary;
+
+            let taxAmount = 0;
+            let index = 1;
+            let tmpRateAmount = 0;
+            let tmpDeductionRateAmount = 0;
+            
+            while (yearlySalary > 0) {
+                tmpRateAmount = index == 5 ? yearlySalary : Math.min(5000, yearlySalary);
+                yearlySalary -= tmpRateAmount;
+
+                tmpDeductionRateAmount = index * 0.05;
+                taxAmount += parseFloat((tmpRateAmount * tmpDeductionRateAmount).toFixed(numberOfRoundDigits));
+                index++;
+            }
+
+            return parseFloat((taxAmount / 12).toFixed(numberOfRoundDigits));
+        }
+    </script>
+</head>
+
+<body>
+    <div id="container">
+        <h2>Kawamleh Salary Deductions Calculator</h2>
+
+        <label for="married">Are you married?</label>
+        <input type="checkbox" id="married" onclick="calculateDeductions()">
+
+
+        <label for="salary">Enter your monthly salary:</label>
+        <input type="number" min="0" id="salary" onkeyup="calculateDeductions()">
+
+        <div id="wifeSalaryInfo">
+            <label for="wifeSalary">Enter your wife's monthly salary:</label>
+            <input type="number" min="0" id="wifeSalary" onkeyup="calculateDeductions()">
+        </div>
+
+        <label for="socialSecurityDeduction">Social Security Deduction:</label>
+        <label id="socialSecurityDeduction"></label>
+
+        <label for="TaxDeduction">Tax Deduction:</label>
+        <label id="TaxDeduction"></label>
+
+        <label for="netAmount">Net Amount:</label>
+        <label id="netAmount"></label>
+    </div>
+</body>
+
+</html>
